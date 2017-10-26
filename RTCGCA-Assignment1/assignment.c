@@ -123,9 +123,30 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 	glLoadIdentity();					// Reset The Current Modelview Matrix
 
-	glColor3f(0.5f, 0.25f, 0.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);
 	glPushMatrix();
-		glTranslatef(1.0f, -1.0f, -6.0f + sin(angle[7] / 90));				// Move Right 1.5 Units And Into The Screen 6.0
+		glTranslatef(-1.0f, 1.0f, -6.0f);
+		glRotatef(angle[1], 0.0f, 1.0f, 0.0f);
+		glutSolidTorus(0.1f, 0.3f, 50, 50);
+	glPopMatrix();
+
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glPushMatrix();
+		glTranslatef(-1.0f, 0.0f, -6.0f);
+		glRotatef(angle[2], 1.0f, 0.0f, 0.0f);
+		glutSolidTeapot(0.5f);
+	glPopMatrix();
+
+	glColor3f(1.0f, 0.0f, 1.0f);
+	glPushMatrix();
+		glTranslatef(-1.0f, -1.0f, -6.0f);
+		glScalef(3.0f + sin(angle[3] / 90), 3.0f + sin(angle[3] / 90), 3.0f + sin(angle[3] / 90));
+		glutSolidSphere(0.1f, 50, 50);
+	glPopMatrix();
+
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glPushMatrix();
+		glTranslatef(1.0f, -1.0f, -6.0f + sin(angle[7] / 90));
 		glutSolidCube(0.5);
 	glPopMatrix();
 

@@ -17,53 +17,11 @@ static float angle[7] = {0.0};
 
 #define FRAME_WIDTH  800
 #define FRAME_HEIGHT 600
-
-#define UNITS_PLACE 0
-#define TENS_PLACE  1
-#define HUNDREDS_PLACE 2
-#define THOUSANDS_PLACE 3
-int ratio[4];
 int keyChar[8];
-
-
-GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};
-
-GLfloat mat_specular[] = {1.0, 1.0, 1.0, 1.0};
-GLfloat mat_shininess[] = {150.0};
-GLfloat mat_ambient[] = {0.7, 0.7, 0.7, 1.0};
-GLfloat mat_diffuse[] = {0.7f, 0.1, 0.2, 1.0};
-
-
-#define	checkImageWidth 64
-#define	checkImageHeight 64
-static GLubyte checkImage[checkImageHeight][checkImageWidth][4];
-static GLubyte otherImage[checkImageHeight][checkImageWidth][4];
-
-static GLuint texName[2];
 
 GLUnurbs* glunurbs;
 GLfloat ctlpoints[4][4][3];
 GLfloat knots[8] = {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-
-void makeCheckImages(void)
-{
-	int i, j, c;
-
-	for (i = 0; i < checkImageHeight; i++) {
-		for (j = 0; j < checkImageWidth; j++) {
-			c = ((((i & 0x8) == 0) ^ ((j & 0x8)) == 0)) * 255;
-			checkImage[i][j][0] = (GLubyte)c;
-			checkImage[i][j][1] = (GLubyte)c;
-			checkImage[i][j][2] = (GLubyte)c;
-			checkImage[i][j][3] = (GLubyte)255;
-			c = ((((i & 0x10) == 0) ^ ((j & 0x10)) == 0)) * 255;
-			otherImage[i][j][0] = (GLubyte)c;
-			otherImage[i][j][1] = (GLubyte)0;
-			otherImage[i][j][2] = (GLubyte)0;
-			otherImage[i][j][3] = (GLubyte)255;
-		}
-	}
-}
 
 void init(void)
 {
@@ -73,52 +31,30 @@ void init(void)
 	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
 
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
+	memset(keyChar, 0, 8 * sizeof(int));
+
+	GLfloat mat_specular[] = {1.0, 1.0, 1.0, 1.0};
+	GLfloat mat_shininess[] = {50.0};
+
+	GLfloat light_position[] = {2.0, 2.0, 3.0, 0.0}; 
+
+	GLfloat light_ambient[] = {1.0, 1.0, 1.0, 1.0};
+	GLfloat light_diffuse[] = {1.0, 1.0, 1.0, 1.0};
+	GLfloat light_specular[] = {1.0, 1.0, 1.0, 1.0};
+
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
-	ratio[UNITS_PLACE] = 1;
-	ratio[TENS_PLACE] = 10;
-	ratio[HUNDREDS_PLACE] = 100;
-	ratio[THOUSANDS_PLACE] = 1000;
-
-	memset(keyChar, 0, 8 * sizeof(int));
-
-	makeCheckImages(); // ???
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	// Generate the two textures
-	glGenTextures(2, texName);
-	glBindTexture(GL_TEXTURE_2D, texName[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth,
-		checkImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-		checkImage);
-
-	glBindTexture(GL_TEXTURE_2D, texName[1]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth,
-		checkImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-		otherImage);
-
-	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
+	glEnable(GL_LIGHTING);
+
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 
 	glunurbs = gluNewNurbsRenderer();
 
@@ -140,39 +76,79 @@ void init(void)
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
-	glLoadIdentity();					// Reset The Current Modelview Matrix
+	glLoadIdentity();									// Reset The Current Modelview Matrix
 
-	glColor3f(1.0f, 0.0f, 0.0f);
+	glPushMatrix();
+		glTranslatef(0.0f, 0.0f, -6.0f);
+		glScalef(4.0f, 4.0f, 4.0f);
+		glBegin(GL_QUADS);
+			glColor3f(0.3f, 0.3f, 0.3f);
+			glVertex3d(-0.5, -0.5, -0.5);
+			glVertex3d(0.5, -0.5, -0.5);
+			glVertex3d(0.5, 0.5, -0.5);
+			glVertex3d(-0.5, 0.5, -0.5);
+		glEnd();
+		glBegin(GL_QUADS);
+			glColor3f(0.3f, 0.3f, 0.5f);
+			glVertex3d(0.5, -0.5, -0.5);
+			glVertex3d(0.5, 0.5, -0.5);
+			glVertex3d(0.5, 0.5, 0.5);
+			glVertex3d(0.5, -0.5, 0.5);
+		glEnd();
+		glBegin(GL_QUADS);
+			glColor3f(0.3f, 0.4f, 0.6f);
+			glVertex3d(-0.5, -0.5, -0.5);
+			glVertex3d(-0.5, -0.5, 0.5);
+			glVertex3d(-0.5, 0.5, 0.5);
+			glVertex3d(-0.5, 0.5, -0.5);
+		glEnd();
+		glBegin(GL_QUADS);
+			glColor3f(0.4f, 0.4f, 0.7f);
+			glVertex3d(-0.5, 0.5, -0.5);
+			glVertex3d(0.5, 0.5, -0.5);
+			glVertex3d(0.5, 0.5, 0.5);
+			glVertex3d(-0.5, 0.5, 0.5);
+		glEnd();
+		glBegin(GL_QUADS);
+			glColor3f(0.4f, 0.4f, 0.6f);
+			glVertex3d(-0.5, -0.5, -0.5);
+			glVertex3d(0.5, -0.5, -0.5);
+			glVertex3d(0.5, -0.5, 0.5);
+			glVertex3d(-0.5, -0.5, 0.5);
+		glEnd();
+	glPopMatrix();
+
+	glColor3f(0.5f, 0.0f, 0.0f);
 	glPushMatrix();
 		glTranslatef(-1.0f, 1.0f, -6.0f);
 		glRotatef(angle[1], 0.0f, 1.0f, 0.0f);
 		glutSolidTorus(0.1f, 0.3f, 50, 50);
 	glPopMatrix();
 
-	glColor3f(0.0f, 0.0f, 1.0f);
+	glColor3f(0.0f, 0.0f, 0.5f);
 	glPushMatrix();
-		glTranslatef(-1.0f, 0.0f, -6.0f);
+		glTranslatef(-0.6f, 0.2f, -5.0f);
 		glRotatef(angle[2], 1.0f, 0.0f, 0.0f);
-		glutSolidTeapot(0.5f);
+		glutSolidTeapot(0.3f);
 	glPopMatrix();
 
-	glColor3f(1.0f, 0.0f, 1.0f);
+	glColor3f(0.5f, 0.0f, 0.5f);
 	glPushMatrix();
-		glTranslatef(-1.0f, -1.0f, -6.0f);
+		glTranslatef(-0.9f, -0.8f, -6.0f);
 		glScalef(3.0f + sin(angle[3] / 90), 3.0f + sin(angle[3] / 90), 3.0f + sin(angle[3] / 90));
 		glutSolidSphere(0.1f, 50, 50);
 	glPopMatrix();
 
-	glColor3f(0.0f, 0.0f, 1.0f);
+	glColor3f(0.0f, 0.5f, 0.0f);
 	glPushMatrix();
 		glTranslatef(1.0f, 1.0f, -6.0f);
 		glRotatef(270 + angle[4], 1.0f, 0.0f, 0.0f);
 		glutSolidCone(0.2f, 0.4f, 50, 50);
 	glPopMatrix();
 
-	glColor3f(0.0f, 0.0f, 1.0f);
+	glColor3f(0.0f, 0.5f, 0.5f);
 	glPushMatrix();
-		glTranslatef(1.0f, 0.0f, -6.0f);
+		glTranslatef(1.1f, -0.1f, -6.0f);
 		glRotatef(angle[5], 0.0f, 1.0f, 0.0f);
 		glRotatef(270 + angle[6], 1.0f, 0.0f, 0.0f);
 		glScalef(0.1f, 0.1f, 0.1f);
@@ -184,104 +160,12 @@ void display(void)
 		gluEndSurface(glunurbs);
 	glPopMatrix();
 
-	glColor3f(0.0f, 1.0f, 0.0f);
+	glColor3f(0.5f, 0.5f, 0.0f);
 	glPushMatrix();
-		glTranslatef(1.0f, -1.0f, -6.0f + sin(angle[7] / 90));
+		glTranslatef(0.7f, -0.95f, -6.0f + sin(angle[7] / 90));
 		glutSolidCube(0.5);
 	glPopMatrix();
 
-	/*
-		if (keyChar[0])
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-	else
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-
-	if (keyChar[3])
-	{
-		glEnable(GL_TEXTURE_2D);
-	}
-	else
-	{
-		glDisable(GL_TEXTURE_2D);
-	}
-
-	glBindTexture(GL_TEXTURE_2D, texName[1]);
-	glBegin(GL_QUADS);									// Draw A Quad
-	glColor3f(0.0f, 1.0f, 0.0f);			// Set The Color To Blue
-	glNormal3f(0.0, 1.0, 0.0);
-
-	glTexCoord2f(0.0, 0.0); 	glVertex3f(1.0f, 1.0f, -1.0f);			// Top Right Of The Quad (Top)
-	glTexCoord2f(0.0, 1.0);		glVertex3f(-1.0f, 1.0f, -1.0f);			// Top Left Of The Quad (Top)
-	glTexCoord2f(1.0, 1.0);		glVertex3f(-1.0f, 1.0f, 1.0f);			// Bottom Left Of The Quad (Top)
-	glTexCoord2f(1.0, 0.0);		glVertex3f(1.0f, 1.0f, 1.0f);			// Bottom Right Of The Quad (Top)
-	glEnd();						// Done Drawing The Quad
-
-	glBegin(GL_QUADS);									// Draw A Quad
-	glColor3f(1.0f, 0.5f, 0.0f);			// Set The Color To Orange
-	glNormal3f(0.0, 1.0, 0.0);
-	glTexCoord2f(0.0, 0.0); 	glVertex3f(1.0f, -1.0f, 1.0f);			// Top Right Of The Quad (Bottom)
-	glTexCoord2f(0.0, 1.0);		glVertex3f(-1.0f, -1.0f, 1.0f);			// Top Left Of The Quad (Bottom)
-	glTexCoord2f(1.0, 1.0);		glVertex3f(-1.0f, -1.0f, -1.0f);			// Bottom Left Of The Quad (Bottom)
-	glTexCoord2f(1.0, 0.0);		glVertex3f(1.0f, -1.0f, -1.0f);			// Bottom Right Of The Quad (Bottom)
-	glEnd();						// Done Drawing The Quad
-
-	glBegin(GL_QUADS);									// Draw A Quad
-	glColor3f(1.0f, 0.0f, 0.0f);			// Set The Color To Red
-	glNormal3f(0.0, 0.0, 1.0);
-	glTexCoord2f(0.0, 0.0); 	glVertex3f(1.0f, 1.0f, 1.0f);			// Top Right Of The Quad (Front)
-	glTexCoord2f(0.0, 1.0);		glVertex3f(-1.0f, 1.0f, 1.0f);			// Top Left Of The Quad (Front)
-	glTexCoord2f(1.0, 1.0);		glVertex3f(-1.0f, -1.0f, 1.0f);			// Bottom Left Of The Quad (Front)
-	glTexCoord2f(1.0, 0.0);		glVertex3f(1.0f, -1.0f, 1.0f);			// Bottom Right Of The Quad (Front)
-	glEnd();						// Done Drawing The Quad
-
-	glBindTexture(GL_TEXTURE_2D, texName[0]);
-
-	glBegin(GL_QUADS);									// Draw A Quad
-	glColor3f(1.0f, 1.0f, 0.0f);			// Set The Color To Yellow
-	glNormal3f(0.0, 0.0, 1.0);
-	glTexCoord2f(0.0, 0.0); 	glVertex3f(1.0f, -1.0f, -1.0f);			// Bottom Left Of The Quad (Back)
-	glTexCoord2f(0.0, 1.0);		glVertex3f(-1.0f, -1.0f, -1.0f);			// Bottom Right Of The Quad (Back)
-	glTexCoord2f(1.0, 1.0);		glVertex3f(-1.0f, 1.0f, -1.0f);			// Top Right Of The Quad (Back)
-	glTexCoord2f(1.0, 0.0);		glVertex3f(1.0f, 1.0f, -1.0f);			// Top Left Of The Quad (Back)
-	glEnd();						// Done Drawing The Quad
-
-	glBegin(GL_QUADS);									// Draw A Quad
-	glColor3f(0.0f, 0.0f, 1.0f);			// Set The Color To Blue
-	glNormal3f(1.0, 0.0, 0.0);
-	glTexCoord2f(0.0, 0.0); 	glVertex3f(-1.0f, 1.0f, 1.0f);			// Top Right Of The Quad (Left)
-	glTexCoord2f(0.0, 1.0);		glVertex3f(-1.0f, 1.0f, -1.0f);			// Top Left Of The Quad (Left)
-	glTexCoord2f(1.0, 1.0);		glVertex3f(-1.0f, -1.0f, -1.0f);			// Bottom Left Of The Quad (Left)
-	glTexCoord2f(1.0, 0.0);		glVertex3f(-1.0f, -1.0f, 1.0f);			// Bottom Right Of The Quad (Left)
-	glEnd();						// Done Drawing The Quad
-
-	glBegin(GL_QUADS);									// Draw A Quad
-	glColor3f(1.0f, 0.0f, 1.0f);			// Set The Color To Violet
-	glNormal3f(1.0, 0.0, 0.0);
-	glTexCoord2f(0.0, 0.0); 	glVertex3f(1.0f, 1.0f, -1.0f);			// Top Right Of The Quad (Right)
-	glTexCoord2f(0.0, 1.0);		glVertex3f(1.0f, 1.0f, 1.0f);			// Top Left Of The Quad (Right)
-	glTexCoord2f(1.0, 1.0);		glVertex3f(1.0f, -1.0f, 1.0f);			// Bottom Left Of The Quad (Right)
-	glTexCoord2f(1.0, 0.0);		glVertex3f(1.0f, -1.0f, -1.0f);			// Bottom Right Of The Quad (Right)
-	glEnd();						// Done Drawing The Quad
-									// Done Drawing The Quad
-
-									//¶ÁÈ¡Ö¡»º´æ
-	frameNum++;
-	if ((keyChar[2]) && (frameNum < 180))
-	{
-		glReadBuffer(GL_BACK);
-		glReadPixels(0, 0, FRAME_WIDTH, FRAME_HEIGHT, GL_BGR, GL_UNSIGNED_BYTE, colorBuf);
-
-		sprintf_s(numStr, 100, "%03d", frameNum);
-		numStr[4] = '\0';
-		sprintf_s(bmpFilename, 100, "%s%s.bmp", "./result/frame", numStr);
-		SaveDIB24(bmpFilename, FRAME_WIDTH, FRAME_HEIGHT, colorBuf);
-
-	}
-	*/
 	glutSwapBuffers();
 	for (int i = 1; i <= 7; ++i)
 		if (keyChar[i])

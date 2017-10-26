@@ -258,7 +258,8 @@ void reshape (int width, int height)
 	gluPerspective(45.0f,(GLfloat)width/(GLfloat)height,0.1f,100.0f);
 
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-	glLoadIdentity();}
+	glLoadIdentity();
+}
 
 void keyboard(unsigned char key, int x, int y)
 {

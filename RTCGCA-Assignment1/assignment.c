@@ -41,6 +41,10 @@ static GLubyte otherImage[checkImageHeight][checkImageWidth][4];
 
 static GLuint texName[2];
 
+GLUnurbs* glunurbs;
+GLfloat ctlpoints[4][4][3];
+GLfloat knots[8] = {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+
 void makeCheckImages(void)
 {
 	int i, j, c;
@@ -115,6 +119,21 @@ void init(void)
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_TEXTURE_GEN_S);
 	glEnable(GL_TEXTURE_GEN_T);
+
+	glunurbs = gluNewNurbsRenderer();
+
+	// Init nurbs
+	int u, v;
+	for (u = 0; u < 4; ++u) {
+		for (v = 0; v < 4; ++v) {
+			ctlpoints[u][v][0] = 2.0 * ((GLfloat)u - 1.5);
+			ctlpoints[u][v][1] = 2.0 * ((GLfloat)v - 1.5);
+			if ((u == 1 || u == 2) && (v == 1 || v == 2))
+				ctlpoints[u][v][2] = 3.0f;
+			else
+				ctlpoints[u][v][2] = -3.0f;
+		}
+	}
 }
 
 
@@ -142,6 +161,27 @@ void display(void)
 		glTranslatef(-1.0f, -1.0f, -6.0f);
 		glScalef(3.0f + sin(angle[3] / 90), 3.0f + sin(angle[3] / 90), 3.0f + sin(angle[3] / 90));
 		glutSolidSphere(0.1f, 50, 50);
+	glPopMatrix();
+
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glPushMatrix();
+		glTranslatef(1.0f, 1.0f, -6.0f);
+		glRotatef(270 + angle[4], 1.0f, 0.0f, 0.0f);
+		glutSolidCone(0.2f, 0.4f, 50, 50);
+	glPopMatrix();
+
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glPushMatrix();
+		glTranslatef(1.0f, 0.0f, -6.0f);
+		glRotatef(angle[5], 0.0f, 1.0f, 0.0f);
+		glRotatef(270 + angle[6], 1.0f, 0.0f, 0.0f);
+		glScalef(0.1f, 0.1f, 0.1f);
+		gluBeginSurface(glunurbs);
+			gluNurbsSurface(glunurbs,
+				8, knots, 8, knots,
+				4 * 3, 3, &ctlpoints[0][0][0],
+				4, 4, GL_MAP2_VERTEX_3);
+		gluEndSurface(glunurbs);
 	glPopMatrix();
 
 	glColor3f(0.0f, 1.0f, 0.0f);

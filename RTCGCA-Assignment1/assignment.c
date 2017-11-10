@@ -7,7 +7,7 @@
  *  This program is one assignment of RTCGCA course.
  */
 #include <windows.h>
-#include <gl.h>
+#include <GL/GL.h>
 #include <glut.h>
 #include <stdio.h>
 #include <stdlib.h>

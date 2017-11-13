@@ -9,7 +9,7 @@
  *  A wireframe cube is rendered.
  */
 #include <windows.h>
-#include <gl.h>
+#include <gl/gl.h>
 #include <glut.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -229,7 +229,7 @@ void display(void)
    if ((keyChar[2])&&(frameNum < 180))
    {
 	   glReadBuffer(GL_BACK);
-	   glReadPixels(0,0,FRAME_WIDTH,FRAME_HEIGHT,GL_BGR,GL_UNSIGNED_BYTE,colorBuf);
+	   glReadPixels(0,0,FRAME_WIDTH,FRAME_HEIGHT,GL_BGR_EXT,GL_UNSIGNED_BYTE,colorBuf);
    
 	   sprintf_s(numStr,100,"%03d",frameNum);
 	   numStr[4] = '\0';
